@@ -7,6 +7,8 @@ verify_ssl = true
 mypy = "*"
 rope = "*"
 autopep8 = "*"
+pytest = "*"
+pytest-watch = "*"
 
 [packages]
 

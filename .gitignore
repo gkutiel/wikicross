@@ -1,2 +1,8 @@
 *.json
 *.xml
+*.aux
+*.fls
+*.pdf
+*.tex
+*.xdv
+*.fdb_latexmk

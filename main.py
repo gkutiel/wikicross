@@ -50,21 +50,43 @@ def d(text):
     return ''
 
 
+def has_en(text):
+    return re.search('[a-z]', text, flags=re.IGNORECASE)
+
+
 def data_json_2_defs_json():
+    trans = ''.maketrans(
+        'ךםןףץ',
+        'כמנפצ',
+        ' #\'"״',
+    )
+
     with open('data.json') as f:
         with open('defs.json', 'w', encoding='utf-8') as o:
             for l in f:
                 row = json.loads(l)
                 title, text = row['title'], row['text']
-                if ':' in title:
+                if ':' in title or has_en(title):
                     continue
                 def_text = d(text)
-                if def_text and not title in def_text:
-                    print(json.dumps({'title': title, 'def': def_text}, ensure_ascii=False), file=o)
+                if (
+                    def_text
+                    and not title in def_text
+                    and not 'הפניה' in def_text
+                    and not has_en(def_text)
+                ):
+                    print(
+                        json.dumps({
+                            'title': title,
+                            'word': title.translate(trans),
+                            'def': def_text,
+                        },
+                            ensure_ascii=False),
+                        file=o
+                    )
 
 
-def gen():
-    n = 8
+def gen(n=4):
     grid = [['-'] * n for _ in range(n)]
 
     def can_fit_h(w: str, i: int, j: int):
@@ -85,35 +107,29 @@ def gen():
         if 0 <= i < n and 0 <= j < n:
             grid[i][j] = grid[i][j] or '*'
 
-    trans = ''.maketrans(
-        'ךםןףץ',
-        'כמנפצ',
-        ' \'"״',
-    )
-
-    h_defs = []
+    h_defs = {}
 
     def fit_h(d):
-        w = d['title'].translate(trans)
+        w = d['word']
         m = len(w)
         for i in range(n):
             for j in range(n - m + 1):
                 if can_fit_h(w, i, j):
-                    h_defs.append((i, j))
+                    h_defs[(i, j)] = d['def'] + f' ({len_word(d)} אותיות)'  # + f' ({d["title"]})'
                     grid[i][j:j+m] = list(w)
                     mark(i, j-1)
                     mark(i, j+m)
                     return True
 
-    v_defs = []
+    v_defs = {}
 
     def fit_v(d):
-        w = d['title'].translate(trans)
+        w = d['word']
         m = len(w)
         for i in range(n - m + 1):
             for j in range(n):
                 if can_fit_v(w, i, j):
-                    v_defs.append((i, j))
+                    v_defs[(i, j)] = d['def'] + f' ({len_word(d)} אותיות)'  # + f' ({d["title"]})'
                     for k, c in enumerate(w):
                         grid[i+k][j] = c
 
@@ -121,13 +137,14 @@ def gen():
                     mark(i+m, j)
                     return True
 
-    def len_title(d):
-        return len(d['title'])
+    def len_word(d):
+        return len(d['word'])
 
+    random.seed(2020)
     defs = random.sample([json.loads(l) for l in open('defs.json')], 1000)
-    defs = [d for d in defs if len_title(d) <= n]
+    defs = [d for d in defs if len_word(d) <= n]
     print(len(defs))
-    defs.sort(key=len_title, reverse=True)
+    defs.sort(key=len_word, reverse=True)
     h = False
     for d in defs:
         if h:
@@ -135,11 +152,66 @@ def gen():
         else:
             h = fit_v(d)
 
-    print(len(h_defs), len(v_defs), len(set(v_defs + h_defs)))
+    return grid, h_defs, v_defs
+
+
+def to_latex(grid, hdefs, vdefs):
     print(*grid, sep='\n')
+    print(*hdefs.items(), sep='\n')
+    print(*vdefs.items(), sep='\n')
+    n = len(grid)
+    corrs = set(list(hdefs.keys()) + list(vdefs.keys()))
+    corrs = {cor: i+1 for i, cor in enumerate(corrs)}
+
+    with open('main.tex', 'w') as f:
+        print(r'''\documentclass{article}
+            \usepackage{tikz}
+            \usepackage{polyglossia}
+            \newfontfamily\hebrewfont[Script=Hebrew]{Hadasim CLM}
+            \setdefaultlanguage[numerals=hebrew]{hebrew}
+            \setotherlanguage{english}
+
+            \begin{document}
+            \begin{center}
+            \begin{tikzpicture}[x=-1cm,y=-1cm]
+
+        ''', file=f)
+
+        for i in range(n):
+            for j in range(n):
+                if grid[i][j] in ['-', '*']:
+                    print(f'\\fill ({i},{j}) rectangle +(1,1);', file=f)
+
+        for (i, j), k in corrs.items():
+            print(f'\\node[below left] at({j}, {i}) {{\\small {k}}};', file=f)
+
+        print(f'''\\foreach \\x in {{0,...,{n}}}{{
+                \\draw[thick] (\\x,0) -- (\\x,{n});
+                \\draw[thick] (0,\\x) -- ({n},\\x);
+                }}
+        ''', file=f)
+
+        print(r'''\end{tikzpicture}
+                \end{center}
+        ''', file=f)
+
+        print(r'\subsection*{מאוזן}', file=f)
+        print(r'\begin{enumerate}', file=f)
+        for cor, d in sorted(hdefs.items(), key=lambda x: corrs[x[0]]):
+            print(f'\\item[{corrs[cor]}.] {d}', file=f)
+        print(r'\end{enumerate}', file=f)
+
+        print(r'\subsection*{מאונך}', file=f)
+        print(r'\begin{enumerate}', file=f)
+        for cor, d in sorted(vdefs.items(), key=lambda x: corrs[x[0]]):
+            print(f'\\item[{corrs[cor]}.] {d}', file=f)
+        print(r'\end{enumerate}', file=f)
+
+        print(r'\end{document}', file=f)
 
 
 if __name__ == '__main__':
     # xml_2_json()
     # data_json_2_defs_json()
-    gen()
+    # gen()
+    to_latex(*gen())
