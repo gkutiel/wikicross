@@ -66,7 +66,7 @@ def data_json_2_defs_json():
             for l in f:
                 row = json.loads(l)
                 title, text = row['title'], row['text']
-                if ':' in title or has_en(title):
+                if ':' in title or '"' in title or has_en(title):
                     continue
                 def_text = d(text)
                 if (
@@ -86,26 +86,27 @@ def data_json_2_defs_json():
                     )
 
 
-def gen(n=6):
-    grid = [['-'] * n for _ in range(n)]
+def gen(n=6, sample=2000):
+    grid = [[None] * n for _ in range(n)]
 
     def can_fit_h(w: str, i: int, j: int):
         for d in range(len(w)):
-            if grid[i][j+d] not in ['-', w[d]]:
+            if grid[i][j+d] not in [None, w[d]]:
                 return False
 
         return True
 
     def can_fit_v(w: str, i: int, j: int):
         for d in range(len(w)):
-            if grid[i+d][j] not in ['-', w[d]]:
+            if grid[i+d][j] not in [None, w[d]]:
                 return False
 
         return True
 
     def mark(i, j):
         if 0 <= i < n and 0 <= j < n:
-            grid[i][j] = grid[i][j] or '*'
+            if grid[i][j] is None:
+                grid[i][j] = '*'
 
     h_defs = {}
 
@@ -140,8 +141,11 @@ def gen(n=6):
     def len_word(d):
         return len(d['word'])
 
-    defs = random.sample([json.loads(l) for l in open('defs.json')], 1000)
-    defs = [d for d in defs if len_word(d) <= n]
+    defs = random.sample(
+        [json.loads(l) for l in open('defs.json')],
+        sample
+    )
+    defs = [d for d in defs if 3 <= len_word(d) <= n]
     print(len(defs))
     defs.sort(key=len_word, reverse=True)
     h = False
@@ -178,8 +182,8 @@ def to_latex(grid, hdefs, vdefs):
 
         for i in range(n):
             for j in range(n):
-                if grid[i][j] in ['-', '*']:
-                    print(f'\\fill ({i},{j}) rectangle +(1,1);', file=f)
+                if grid[i][j] in [None, '*']:
+                    print(f'\\fill ({j},{i}) rectangle +(1,1);', file=f)
 
         for (i, j), k in corrs.items():
             print(f'\\node[below left] at({j}, {i}) {{\\small {k}}};', file=f)
@@ -213,4 +217,4 @@ if __name__ == '__main__':
     # xml_2_json()
     # data_json_2_defs_json()
     # gen()
-    to_latex(*gen())
+    to_latex(*gen(n=5))
