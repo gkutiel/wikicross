@@ -66,8 +66,14 @@ def data_json_2_defs_json():
             for l in f:
                 row = json.loads(l)
                 title, text = row['title'], row['text']
-                if ':' in title or '"' in title or has_en(title):
+                if (
+                    ':' in title
+                    or '"' in title
+                    or "'" in title
+                    or has_en(title)
+                ):
                     continue
+
                 def_text = d(text)
                 if (
                     def_text
@@ -86,7 +92,7 @@ def data_json_2_defs_json():
                     )
 
 
-def gen(n=6, sample=2000):
+def gen(n=8, sample=2000):
     grid = [[None] * n for _ in range(n)]
 
     def can_fit_h(w: str, i: int, j: int):
@@ -146,22 +152,24 @@ def gen(n=6, sample=2000):
         sample
     )
     defs = [d for d in defs if 3 <= len_word(d) <= n]
-    print(len(defs))
-    defs.sort(key=len_word, reverse=True)
+    # defs.sort(key=len_word, reverse=True)
     h = False
     for d in defs:
         if h:
             h = not fit_h(d)
+            if not h:
+                print(*grid, sep='\n')
+                print()
         else:
             h = fit_v(d)
+            if h:
+                print(*grid, sep='\n')
+                print()
 
     return grid, h_defs, v_defs
 
 
 def to_latex(grid, hdefs, vdefs):
-    print(*grid, sep='\n')
-    print(*hdefs.items(), sep='\n')
-    print(*vdefs.items(), sep='\n')
     n = len(grid)
     corrs = set(list(hdefs.keys()) + list(vdefs.keys()))
     corrs = {cor: i+1 for i, cor in enumerate(corrs)}
@@ -170,6 +178,7 @@ def to_latex(grid, hdefs, vdefs):
         print(r'''\documentclass{article}
             \usepackage{tikz}
             \usepackage{polyglossia}
+            \usepackage[margin=0.8cm]{geometry}
             \newfontfamily\hebrewfont[Script=Hebrew]{Hadasim CLM}
             \setdefaultlanguage[numerals=hebrew]{hebrew}
             \setotherlanguage{english}
@@ -217,4 +226,4 @@ if __name__ == '__main__':
     # xml_2_json()
     # data_json_2_defs_json()
     # gen()
-    to_latex(*gen(n=5))
+    to_latex(*gen())
