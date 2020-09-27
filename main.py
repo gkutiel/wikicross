@@ -122,7 +122,8 @@ def gen(n=8, sample=2000):
         for i in range(n):
             for j in range(n - m + 1):
                 if can_fit_h(w, i, j):
-                    h_defs[(i, j)] = d['def'] + f' ({len_word(d)} אותיות)'  # + f' ({d["title"]})'
+                    lens = ','.join([str(len(w)) for w in d["title"].split()])
+                    h_defs[(i, j)] = f'{d["def"]} ({lens})'
                     grid[i][j:j+m] = list(w)
                     mark(i, j-1)
                     mark(i, j+m)
@@ -136,7 +137,8 @@ def gen(n=8, sample=2000):
         for i in range(n - m + 1):
             for j in range(n):
                 if can_fit_v(w, i, j):
-                    v_defs[(i, j)] = d['def'] + f' ({len_word(d)} אותיות)'  # + f' ({d["title"]})'
+                    lens = ','.join([str(len(w)) for w in d["title"].split()])
+                    v_defs[(i, j)] = f'{d["def"]} ({lens})'
                     for k, c in enumerate(w):
                         grid[i+k][j] = c
 
@@ -151,8 +153,11 @@ def gen(n=8, sample=2000):
         [json.loads(l) for l in open('defs.json')],
         sample
     )
-    defs = [d for d in defs if 3 <= len_word(d) <= n]
-    # defs.sort(key=len_word, reverse=True)
+    defs = [d for d in defs if 2 <= len_word(d) <= n]
+    defs.sort(
+        key=lambda d: random.randint(0, len_word(d)),
+        reverse=True
+    )
     h = False
     for d in defs:
         if h:
@@ -218,6 +223,31 @@ def to_latex(grid, hdefs, vdefs):
         for cor, d in sorted(vdefs.items(), key=lambda x: corrs[x[0]]):
             print(f'\\item[{corrs[cor]}.] {d}', file=f)
         print(r'\end{enumerate}', file=f)
+
+        print(r'''\pagebreak
+                \begin{center}
+                \begin{tikzpicture}[x=-1cm,y=-1cm]
+        ''', file=f)
+
+        for i in range(n):
+            for j in range(n):
+                if grid[i][j] in [None, '*']:
+                    print(f'\\fill ({j},{i}) rectangle +(1,1);', file=f)
+                else:
+                    print(f'\\node[] at({j + .5}, {i + .5}) {{{grid[i][j]}}};', file=f)
+
+        for (i, j), k in corrs.items():
+            print(f'\\node[below left] at({j}, {i}) {{\\small {k}}};', file=f)
+
+        print(f'''\\foreach \\x in {{0,...,{n}}}{{
+                \\draw[thick] (\\x,0) -- (\\x,{n});
+                \\draw[thick] (0,\\x) -- ({n},\\x);
+                }}
+        ''', file=f)
+
+        print(r'''\end{tikzpicture}
+                \end{center}
+        ''', file=f)
 
         print(r'\end{document}', file=f)
 
