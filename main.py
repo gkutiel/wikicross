@@ -109,11 +109,6 @@ def gen(n=8, sample=2000):
 
         return True
 
-    def mark(i, j):
-        if 0 <= i < n and 0 <= j < n:
-            if grid[i][j] is None:
-                grid[i][j] = '*'
-
     h_defs = {}
 
     def fit_h(d):
@@ -125,8 +120,6 @@ def gen(n=8, sample=2000):
                     lens = ','.join([str(len(w)) for w in d["title"].split()])
                     h_defs[(i, j)] = f'{d["def"]} ({lens})'
                     grid[i][j:j+m] = list(w)
-                    mark(i, j-1)
-                    mark(i, j+m)
                     return True
 
     v_defs = {}
@@ -142,8 +135,6 @@ def gen(n=8, sample=2000):
                     for k, c in enumerate(w):
                         grid[i+k][j] = c
 
-                    mark(i-1, j)
-                    mark(i+m, j)
                     return True
 
     def len_word(d):
