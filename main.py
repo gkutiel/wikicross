@@ -86,7 +86,7 @@ def data_json_2_defs_json():
                     )
 
 
-def gen(n=4):
+def gen(n=6):
     grid = [['-'] * n for _ in range(n)]
 
     def can_fit_h(w: str, i: int, j: int):
@@ -140,7 +140,6 @@ def gen(n=4):
     def len_word(d):
         return len(d['word'])
 
-    random.seed(2020)
     defs = random.sample([json.loads(l) for l in open('defs.json')], 1000)
     defs = [d for d in defs if len_word(d) <= n]
     print(len(defs))
