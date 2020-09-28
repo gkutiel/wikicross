@@ -126,9 +126,12 @@ def task_data_2_defs():
     }
 
 
-def gen(seed, n=20, sample=3000):
+def gen(seed, n=20, sample=5000):
     random.seed(seed)
     grid = [[None] * n for _ in range(n)]
+    for i in range(1, n, 2):
+        for j in range(1, n, 2):
+            grid[i][j] = '*'
 
     def free(i, j):
         return (
@@ -328,7 +331,7 @@ def task_gen():
             title=f'תשבץ {n}X{n}'
         )
 
-    ns = [6, 12, 18]
+    ns = [7, 13, 19]
     r = 9
 
     def index_html():
