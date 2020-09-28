@@ -365,7 +365,7 @@ def task_gen():
             content = div.content[div.title[h1['ויקי-תשבץ']]]
             for n in ns:
                 grid = div.grid
-                content.append(h2[f'תשבצים {n}X{n}'])
+                content.append(div.title[h2[f'תשבצים {n}X{n}']])
                 content.append(grid)
                 for i in range(r):
                     grid.append(div.cell[a(href=f'{n}X{n}/{i:0>4}.pdf')[f'תשבץ מספר {i + 1}']])
