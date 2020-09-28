@@ -304,22 +304,26 @@ def task_gen():
     r = 9
 
     def index_html():
-        from shooki import (html, head, body, link, div, a, title, h1, h2, p)
+        from shooki import (html, head, body, link, div, a, title, h1, h2, p, meta)
 
         with open(docs / 'index.html', 'w') as f:
             content = div.content[h1['ויקי-תשבץ']]
             for n in ns:
                 grid = div.grid
-                content.append_child(h2[f'תשבצים {n}X{n}'])
-                content.append_child(grid)
+                content.append(h2[f'תשבצים {n}X{n}'])
+                content.append(grid)
                 for i in range(r):
-                    grid.append_child(div[a(href=f'{n}X{n}/{i:0>4}.pdf')[f'תשבץ מספר {i + 1}']])
+                    grid.append(div[a(href=f'{n}X{n}/{i:0>4}.pdf')[f'תשבץ מספר {i + 1}']])
             print(
                 '<!DOCTYPE html>',
                 html(lang='he', dir='auto')[
                     head[
                         title['ויקי-תשבץ'],
-                        link(rel='stylesheet', href='index.css')
+                        link(rel='stylesheet', href='index.css'),
+                        link(rel='icon', href='favicon.png'),
+                        meta(property="og:title", content="ויקי תשבץ"),
+                        meta(property="og:description", content="תשבצים מגונרצים מויקימילון"),
+                        meta(property="og:image", content="favicon.png"),
                     ],
                     body[content],
                 ], file=f
