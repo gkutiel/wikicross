@@ -1,5 +1,7 @@
+from typing import Tuple
 from doit.tools import run_once
 import numpy as np
+from numpy import ndarray as nd
 from pathlib import Path
 import random
 import json
@@ -57,6 +59,10 @@ def task_xml_2_json():
     }
 
 
+def has_en(text):
+    return re.search('[a-z]', text, flags=re.IGNORECASE)
+
+
 def task_data_2_defs():
     def d(text):
         p1 = re.compile(r'\{\{[^{}]*\}\}')
@@ -79,9 +85,6 @@ def task_data_2_defs():
                 ).replace('{', r'\{').replace('}', r'\}').strip()
 
         return ''
-
-    def has_en(text):
-        return re.search('[a-z]', text, flags=re.IGNORECASE)
 
     def data_json_2_defs_json():
         trans = ''.maketrans(
@@ -130,6 +133,34 @@ def task_data_2_defs():
 empty, blocked = '.', '0'
 
 
+def free(grid, cell: Tuple[int, int]):
+    n = len(grid)
+    i, j = cell
+    return (
+        not 0 <= i < n
+        or not 0 <= j < n
+        or grid[i][j] in [empty, blocked]
+    )
+
+
+def fit(grid, start: nd, end: nd, word: str):
+    d = np.sign(end - start)
+    if (
+        not free(grid, start - d)
+        or not free(grid, end + d)
+    ):
+        return False
+
+    (i1, j1), (i2, j2) = start, end
+    di, dj = d
+    ref = grid[i1, j1:j2] if dj else grid[i1:i2, j1]
+    for i, c in enumerate(ref):
+        if c not in [empty, word[i]]:
+            return False
+
+    return True
+
+
 def gen(seed, n=7):
     random.seed(seed)
     grid = np.full((n, n), empty)
@@ -137,70 +168,40 @@ def gen(seed, n=7):
         for j in range(1, n, 2):
             grid[i][j] = blocked
 
-    def free(i, j):
-        return (
-            not 0 <= i < n
-            or not 0 <= j < n
-            or grid[i][j] in [empty, blocked]
-        )
-
     def block(i, j):
         if 0 <= i < n and 0 <= j < n:
-            grid[i][j] = grid[i][j] or blocked
-
-    def can_fit_h(w: str, i: int, j: int):
-        m = len(w)
-        if not free(i, j-1) or not free(i, j+m):
-            return False
-
-        for d in range(m):
-            if grid[i][j+d] not in [empty, w[d]]:
-                return False
-
-        return True
-
-    def can_fit_v(w: str, i: int, j: int):
-        m = len(w)
-        if not free(i-1, j) or not free(i+m, j):
-            return False
-
-        for d in range(m):
-            if grid[i+d][j] not in [empty, w[d]]:
-                return False
-
-        return True
+            grid[i][j] = blocked
 
     h_defs = {}
     v_defs = {}
 
-    def lens(d):
-        return ','.join(reversed([str(len(w)) for w in d["title"].split()]))
+    def lens(de):
+        return ','.join(reversed([str(len(w)) for w in de["title"].split()]))
 
-    def fit_h(d):
-        w = d['word']
+    def place(de, d: nd):
+        w = de['word']
         m = len(w)
-        for i in range(n):
-            for j in range(n - m + 1):
-                if can_fit_h(w, i, j):
-                    h_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
-                    grid[i, j:j+m] = list(w)
+        di, dj = d
+        for i in range(n - (m - 1) * di):
+            for j in range(n - (m - 1) * dj):
+                start = np.array([i, j])
+                end = start + m * d
+                if fit(grid, start, end, w):
+                    # print(w)
+                    # print(grid)
+                    s = f'{de["def"]} ({lens(de)})'
+                    if di:
+                        h_defs[(i, j)] = s
+                        grid[i:i+m, j] = list(w)
+                    else:
+                        v_defs[(i, j)] = s
+                        grid[i, j:j+m] = list(w)
 
-                    block(i, j - 1)
-                    block(i, j + m)
-                    return True
-
-    def fit_v(d):
-        w = d['word']
-        m = len(w)
-        for i in range(n - m + 1):
-            for j in range(n):
-                if can_fit_v(w, i, j):
-                    v_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
-                    grid[i:i+m, j] = list(w)
-
-                    block(i-1, j)
-                    block(i + m, j)
-                    return True
+                    block(i-di, j-dj)
+                    block(i+di*m, j+dj*m)
+                    # print(grid)
+                    return np.array([dj, di])
+        return d
 
     defs = [[] for i in range(n + 1)]
     words = {}
@@ -216,13 +217,10 @@ def gen(seed, n=7):
     for l in defs:
         random.shuffle(l)
 
-    h = False
-    for i in range(n, 1, -1):
-        for d in defs[i]:
-            if h:
-                h = not fit_h(d)
-            else:
-                h = fit_v(d)
+    d = np.array([1, 0])
+    for length in range(n, 1, -1):
+        for de in defs[length]:
+            d = place(de, d)
 
     trans = ''.maketrans('', '', empty + blocked)
     for i in range(1, n, 4):
@@ -356,7 +354,7 @@ def task_gen():
         )
 
     ns = [7, 9, 11, 13]
-    r = 12
+    r = 3
 
     def index_html():
         from shooki import (html, head, body, link, div, a, title, h1, h2, p, meta)
