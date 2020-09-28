@@ -127,7 +127,7 @@ def task_data_2_defs():
     }
 
 
-def gen(seed, n=20, sample=5000):
+def gen(seed, n=7):
     random.seed(seed)
     grid = np.zeros((n, n), dtype=object)
     for i in range(1, n, 2):
@@ -202,20 +202,25 @@ def gen(seed, n=20, sample=5000):
                     ws.append(w)
                     return True
 
-    def len_word(d):
-        return len(d['word'])
+    defs = [[] for i in range(n + 1)]
+    for d in [json.loads(l) for l in open('defs.json')]:
+        l = len(d['word'])
+        if l <= n:
+            defs[l].append(d)
 
-    defs = [json.loads(l) for l in open('defs.json')]
-    defs = random.sample(defs, sample)
-    defs = [d for d in defs if 2 <= len_word(d) <= n]
-    defs.sort(key=len_word, reverse=True)
+    for l in defs:
+        random.shuffle(l)
+
+    # for c in 'אבגדהוזחטיכלמנסעפצקרשת':
+    #     ...
 
     h = False
-    for d in defs:
-        if h:
-            h = not fit_h(d)
-        else:
-            h = fit_v(d)
+    for i in range(n, 1, -1):
+        for d in defs[i]:
+            if h:
+                h = not fit_h(d)
+            else:
+                h = fit_v(d)
 
     print(sum(map(len, ws)))
     return grid, h_defs, v_defs
@@ -330,7 +335,7 @@ def task_gen():
         )
 
     ns = [7, 9, 11, 13]
-    r = 9
+    r = 1
 
     def index_html():
         from shooki import (html, head, body, link, div, a, title, h1, h2, p, meta)
