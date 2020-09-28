@@ -304,10 +304,10 @@ def task_gen():
     r = 9
 
     def index_html():
-        from shooki import (html, head, body, link, div, a, title, h1, h2)
+        from shooki import (html, head, body, link, div, a, title, h1, h2, p)
 
         with open(docs / 'index.html', 'w') as f:
-            content = div.content[h1['התשבצים של גלעד']]
+            content = div.content[h1['ויקי-תשבץ']]
             for n in ns:
                 grid = div.grid
                 content.append_child(h2[f'תשבצים {n}X{n}'])
@@ -317,7 +317,10 @@ def task_gen():
             print(
                 '<!DOCTYPE html>',
                 html(lang='he', dir='auto')[
-                    head[link(rel='stylesheet', href='index.css')],
+                    head[
+                        title['ויקי-תשבץ'],
+                        link(rel='stylesheet', href='index.css')
+                    ],
                     body[content],
                 ], file=f
             )
