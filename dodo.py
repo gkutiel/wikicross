@@ -129,21 +129,42 @@ def task_data_2_defs():
 def gen(n=20, sample=3000):
     grid = [[None] * n for _ in range(n)]
 
+    def free(i, j):
+        return (
+            not 0 <= i < n
+            or not 0 <= j < n
+            or not grid[i][j]
+        )
+
+    def mark(i, j):
+        if 0 <= i < n and 0 <= j < n:
+            grid[i][j] = grid[i][j] or '*'
+
     def can_fit_h(w: str, i: int, j: int):
-        for d in range(len(w)):
+        m = len(w)
+        if not free(i, j-1) or not free(i, j+m):
+            return False
+
+        for d in range(m):
             if grid[i][j+d] not in [None, w[d]]:
                 return False
 
         return True
 
     def can_fit_v(w: str, i: int, j: int):
-        for d in range(len(w)):
+        m = len(w)
+        if not free(i-1, j) or not free(i+m, j):
+            return False
+
+        for d in range(m):
             if grid[i+d][j] not in [None, w[d]]:
                 return False
 
         return True
 
+    ws = []
     h_defs = {}
+    v_defs = {}
 
     def lens(d):
         return ','.join(reversed([str(len(w)) for w in d["title"].split()]))
@@ -156,9 +177,11 @@ def gen(n=20, sample=3000):
                 if can_fit_h(w, i, j):
                     h_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
                     grid[i][j:j+m] = list(w)
-                    return True
 
-    v_defs = {}
+                    mark(i, j - 1)
+                    mark(i, j + m)
+                    ws.append(w)
+                    return True
 
     def fit_v(d):
         w = d['word']
@@ -170,6 +193,9 @@ def gen(n=20, sample=3000):
                     for k, c in enumerate(w):
                         grid[i+k][j] = c
 
+                    mark(i-1, j)
+                    mark(i + m, j)
+                    ws.append(w)
                     return True
 
     def len_word(d):
@@ -189,6 +215,7 @@ def gen(n=20, sample=3000):
         else:
             h = fit_v(d)
 
+    print(sum(map(len, ws)))
     return grid, h_defs, v_defs
 
 
@@ -352,6 +379,7 @@ def task_gen():
                 'file_dep': [git_keep(n)],
                 'targets': [tex(n, i)],
                 'uptodate': [run_once],
+                'verbosity': 2,
             }
 
             yield {
