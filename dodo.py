@@ -191,10 +191,10 @@ def gen(seed, n=7):
                     # print(grid)
                     s = f'{de["def"]} ({lens(de)})'
                     if di:
-                        h_defs[(i, j)] = s
+                        v_defs[(i, j)] = s
                         grid[i:i+m, j] = list(w)
                     else:
-                        v_defs[(i, j)] = s
+                        h_defs[(i, j)] = s
                         grid[i, j:j+m] = list(w)
 
                     block(i-di, j-dj)
