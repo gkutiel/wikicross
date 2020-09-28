@@ -15,7 +15,21 @@ body {
     border: 2px solid #eef;
 }
 
+@media only screen and (max-width: 55em) {
+    .content {
+        width: 94vw;
+    }
+}
+
+.title {
+    text-align: center;
+}
+
 .grid {
     display: grid;
     grid-template-columns: auto auto auto;
+}
+
+.cell {
+    text-align: center;
 }
