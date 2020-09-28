@@ -226,8 +226,24 @@ def gen(seed, n=7):
             d = place(de, d)
 
     trans = ''.maketrans('', '', empty + blocked)
-    for i in range(1, n, 4):
-        for j in range(1, n, 4):
+    for i in range(n):
+        for j in range(n):
+            cells = np.array([
+                [i, j],
+                [i-2, j],
+                [i+2, j],
+                [i, j-2],
+                [i, j+2],
+            ])
+            if (
+                not free(grid, cells[0])
+                or not free(grid, cells[1])
+                or not free(grid, cells[2])
+                or not free(grid, cells[3])
+                or not free(grid, cells[4])
+            ):
+                continue
+
             for c in 'אבגדהוזחטיכלמנסעפצקרשת' + blocked:
                 grid[i][j] = c
                 if c == blocked:
@@ -243,6 +259,8 @@ def gen(seed, n=7):
                     v_cord = (i, j) if grid[i-1][j] in [empty, blocked] else (i-1, j)
                     vd = words[v_word]
                     v_defs[v_cord] = f'{vd["def"]} ({lens(vd)})'
+                    del words[h_word]
+                    del words[v_word]
                     break
 
     return grid, h_defs, v_defs
