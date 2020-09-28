@@ -18,7 +18,7 @@ def test_grid():
     grid = np.asarray([
         ['a', 'b', 'c'],
         ['a', 'b', 'c'],
-        [eee, bbb, 'c']
+        [eee, eee, bbb]
     ])
 
     assert not free(grid, (0, 0))
@@ -32,9 +32,14 @@ def test_grid():
     assert free(grid, (2, 0))
     assert free(grid, (2, 1))
 
-    assert fit(grid, np.array([0, 1]), np.array([1, 1]), 'bb')
-    assert fit(grid, np.array([0, 1]), np.array([1, 1]), 'bbc')
-    assert not fit(grid, np.array([0, 1]), np.array([1, 1]), 'ab')
+    di = np.array([1, 0])
+    dj = np.array([0, 1])
+    assert fit(grid, np.array([0, 0]), di, 'aa')
+    assert not fit(grid, np.array([0, 0]), dj, 'aa')
 
-    assert fit(grid, np.array([0, 0]), np.array([1, 0]), 'aa')
-    # assert not fit(grid, np.array([0, 1]), np.array([0, 2]), 'aa')
+    assert fit(grid, np.array([0, 1]), di, 'bb')
+    assert fit(grid, np.array([0, 1]), di, 'bbc')
+    assert not fit(grid, np.array([0, 1]), di, 'ab')
+
+    assert fit(grid, np.array([0, 2]), di, 'cc')
+    assert not fit(grid, np.array([0, 2]), di, 'ccc')

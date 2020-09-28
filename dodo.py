@@ -130,29 +130,30 @@ def task_data_2_defs():
     }
 
 
-empty, blocked = '.', '0'
+empty, blocked = '.', ','
 
 
-def free(grid, cell: Tuple[int, int]):
+def free(grid, cell: nd):
     n = len(grid)
     i, j = cell
-    return (
-        not 0 <= i < n
-        or not 0 <= j < n
-        or grid[i][j] in [empty, blocked]
-    )
+    if 0 <= i < n and 0 <= j < n:
+        return grid[i][j] in [empty, blocked]
+
+    return True
 
 
-def fit(grid, start: nd, end: nd, word: str):
-    d = np.sign(end - start)
-    if (
-        not free(grid, start - d)
-        or not free(grid, end + d)
-    ):
+def fit(grid, start: nd, d: nd, word: str):
+    assert d.shape == (2,)
+    m = len(word)
+    end = start + d * m
+    di, dj = d
+    assert di * dj == 0
+    assert di + dj == 1
+
+    if not free(grid, start - d) or not free(grid, end):
         return False
 
     (i1, j1), (i2, j2) = start, end
-    di, dj = d
     ref = grid[i1, j1:j2] if dj else grid[i1:i2, j1]
     for i, c in enumerate(ref):
         if c not in [empty, word[i]]:
@@ -182,11 +183,13 @@ def gen(seed, n=7):
         w = de['word']
         m = len(w)
         di, dj = d
+        assert di * dj == 0
+        assert di + dj == 1
         for i in range(n - (m - 1) * di):
             for j in range(n - (m - 1) * dj):
                 start = np.array([i, j])
                 end = start + m * d
-                if fit(grid, start, end, w):
+                if fit(grid, start, d, w):
                     # print(w)
                     # print(grid)
                     s = f'{de["def"]} ({lens(de)})'
@@ -354,6 +357,7 @@ def task_gen():
         )
 
     ns = [7, 9, 11, 13]
+    # ns = [9]
     r = 3
 
     def index_html():
