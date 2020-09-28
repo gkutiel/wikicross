@@ -45,7 +45,7 @@ def d(text):
                         l[1:]
                     )
                 )
-            ).strip()
+            ).replace('{', r'\{').replace('}', r'\}').strip()
 
     return ''
 
@@ -92,7 +92,7 @@ def data_json_2_defs_json():
                     )
 
 
-def gen(n=8, sample=2000):
+def gen(n=20, sample=3000):
     grid = [[None] * n for _ in range(n)]
 
     def can_fit_h(w: str, i: int, j: int):
@@ -145,22 +145,14 @@ def gen(n=8, sample=2000):
         sample
     )
     defs = [d for d in defs if 2 <= len_word(d) <= n]
-    defs.sort(
-        key=lambda d: random.randint(0, len_word(d)),
-        reverse=True
-    )
+    defs.sort(key=len_word, reverse=True)
+
     h = False
     for d in defs:
         if h:
             h = not fit_h(d)
-            if not h:
-                print(*grid, sep='\n')
-                print()
         else:
             h = fit_v(d)
-            if h:
-                print(*grid, sep='\n')
-                print()
 
     return grid, h_defs, v_defs
 
@@ -168,10 +160,12 @@ def gen(n=8, sample=2000):
 def to_latex(grid, hdefs, vdefs):
     n = len(grid)
     corrs = set(list(hdefs.keys()) + list(vdefs.keys()))
-    corrs = {cor: i+1 for i, cor in enumerate(corrs)}
+    corrs = {cor: i+1 for i, cor in enumerate(sorted(corrs))}
 
     with open('main.tex', 'w') as f:
-        print(r'''\documentclass{article}
+        print(r'''
+            \nonstopmode
+            \documentclass{article}
             \usepackage{tikz}
             \usepackage{polyglossia}
             \usepackage[margin=0.8cm]{geometry}
