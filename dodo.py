@@ -323,7 +323,7 @@ def task_gen():
                         link(rel='icon', href='favicon.png'),
                         meta(property="og:title", content="ויקי תשבץ"),
                         meta(property="og:description", content="תשבצים מגונרצים מויקימילון"),
-                        meta(property="og:image", content="favicon.png"),
+                        meta(property="og:image", content="https://gkutiel.github.io/wikicross/favicon.png"),
                     ],
                     body[content],
                 ], file=f
