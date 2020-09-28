@@ -376,6 +376,7 @@ def task_gen():
                         title['ויקי-תשבץ'],
                         link(rel='stylesheet', href='index.css'),
                         link(rel='icon', href='favicon.png'),
+                        meta(name="viewport", content="width=device-width, initial-scale=1.0"),
                         meta(property="og:title", content="ויקי תשבץ"),
                         meta(property="og:description", content="תשבצים מגונרצים מויקימילון"),
                         meta(property="og:image", content="https://gkutiel.github.io/wikicross/favicon.png"),
