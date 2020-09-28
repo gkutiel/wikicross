@@ -1,4 +1,5 @@
 from doit.tools import run_once
+import numpy as np
 from pathlib import Path
 import random
 import json
@@ -128,7 +129,7 @@ def task_data_2_defs():
 
 def gen(seed, n=20, sample=5000):
     random.seed(seed)
-    grid = [[None] * n for _ in range(n)]
+    grid = np.zeros((n, n), dtype=object)
     for i in range(1, n, 2):
         for j in range(1, n, 2):
             grid[i][j] = '*'
@@ -150,7 +151,7 @@ def gen(seed, n=20, sample=5000):
             return False
 
         for d in range(m):
-            if grid[i][j+d] not in [None, w[d]]:
+            if grid[i][j+d] not in [0, w[d]]:
                 return False
 
         return True
@@ -161,7 +162,7 @@ def gen(seed, n=20, sample=5000):
             return False
 
         for d in range(m):
-            if grid[i+d][j] not in [None, w[d]]:
+            if grid[i+d][j] not in [0, w[d]]:
                 return False
 
         return True
@@ -180,7 +181,7 @@ def gen(seed, n=20, sample=5000):
             for j in range(n - m + 1):
                 if can_fit_h(w, i, j):
                     h_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
-                    grid[i][j:j+m] = list(w)
+                    grid[i, j:j+m] = list(w)
 
                     mark(i, j - 1)
                     mark(i, j + m)
@@ -194,8 +195,7 @@ def gen(seed, n=20, sample=5000):
             for j in range(n):
                 if can_fit_v(w, i, j):
                     v_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
-                    for k, c in enumerate(w):
-                        grid[i+k][j] = c
+                    grid[i:i+m, j] = list(w)
 
                     mark(i-1, j)
                     mark(i + m, j)
@@ -253,7 +253,7 @@ def to_latex(grid, hdefs, vdefs, out, title=''):
 
         for i in range(n):
             for j in range(n):
-                if grid[i][j] in [None, '*']:
+                if grid[i][j] in [0, '*']:
                     print(f'\\fill ({j},{i}) rectangle +(1,1);', file=f)
 
         for (i, j), k in corrs.items():
@@ -288,7 +288,7 @@ def to_latex(grid, hdefs, vdefs, out, title=''):
 
         for i in range(n):
             for j in range(n):
-                if grid[i][j] in [None, '*']:
+                if grid[i][j] in [0, '*']:
                     print(f'\\fill ({j},{i}) rectangle +(1,1);', file=f)
                 else:
                     print(f'\\node[] at({j + .5}, {i + .5}) {{{grid[i][j]}}};', file=f)

@@ -9,10 +9,11 @@ rope = "*"
 autopep8 = "*"
 pytest = "*"
 pytest-watch = "*"
-doit = "*"
-shooki = "*"
 
 [packages]
+doit = "*"
+shooki = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.6"
