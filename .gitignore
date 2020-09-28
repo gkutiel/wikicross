@@ -2,7 +2,6 @@
 *.xml
 *.aux
 *.fls
-*.pdf
 *.tex
 *.xdv
 *.db

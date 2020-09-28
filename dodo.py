@@ -192,7 +192,7 @@ def gen(n=20, sample=3000):
     return grid, h_defs, v_defs
 
 
-def to_latex(grid, hdefs, vdefs, title='', out=Path('.') / 'main.tex'):
+def to_latex(grid, hdefs, vdefs, out, title=''):
     n = len(grid)
     corrs = set(list(hdefs.keys()) + list(vdefs.keys()))
     corrs = {cor: i+1 for i, cor in enumerate(sorted(corrs))}
@@ -212,6 +212,8 @@ def to_latex(grid, hdefs, vdefs, title='', out=Path('.') / 'main.tex'):
         print(f'\\title{{{title}}}', file=f)
 
         print(r'''
+            \author{גלעד קותיאל}
+            \date{}
             \begin{document}
             \maketitle
             \begin{center}
@@ -278,29 +280,48 @@ def to_latex(grid, hdefs, vdefs, title='', out=Path('.') / 'main.tex'):
 
 def task_gen():
     docs = Path('docs')
-    for n in [6, 10, 15, 20]:
-        for j in range(9):
-            out_dir = docs / f'{n}X{n}'
 
+    def out_dir(n):
+        return docs / f'{n}X{n}'
+
+    def git_keep(n):
+        return out_dir(n) / '.gitkeep'
+
+    def tex(n, i):
+        return out_dir(n) / f'{i:0>4}.tex'
+
+    def pdf(n, i):
+        return tex(n, i).with_suffix('.pdf')
+
+    def gen_tex(n, i):
+        return lambda: to_latex(
+            *gen(n=n),
+            out=tex(n, i),
+            title=f'תשבץ {n}X{n}'
+        )
+
+    for n in [6, 12, 18]:
+        yield {
+            'name': f'mkdir:{n}',
+            'actions': [
+                f'mkdir -p {out_dir(n)}',
+                f'touch {git_keep(n)}'
+            ],
+            'targets': [git_keep(n)],
+        }
+
+        for i in range(9):
             yield {
-                'name': f'mkdir:{n}:{j}',
-                'actions': [f'mkdir -p {out_dir}'],
-            }
-
-            tex = out_dir / f'{j:0>4}.tex'
-
-            yield {
-                'name': f'latex:{n}:{j}',
-                'actions': [lambda: to_latex(*gen(n=n), out=tex)],
-                'targets': [tex],
+                'name': f'tex:{n}:{i}',
+                'actions': [gen_tex(n, i)],
+                'file_dep': [git_keep(n)],
+                'targets': [tex(n, i)],
                 'uptodate': [run_once],
             }
 
-            pdf = tex.with_suffix('.pdf')
-
             yield {
-                'name': f'latex:{n}:{j}',
-                'actions': [f'latexmk -xelatex -outdir={out_dir} {tex}'],
-                'file_dep': [tex],
-                'targets': [pdf]
+                'name': f'pdf:{n}:{i}',
+                'actions': [f'latexmk -xelatex -outdir={out_dir(n)} {tex(n, i)}'],
+                'file_dep': [git_keep(n), tex(n, i)],
+                'targets': [pdf(n, i)]
             }
