@@ -328,7 +328,7 @@ def task_gen():
         return lambda: to_latex(
             *gen(i, n=n),
             out=tex(n, i),
-            title=f'תשבץ {n}X{n}'
+            title=f'תשבץ {n}X{n} מספר {i + 1}'
         )
 
     ns = [7, 13, 19]
