@@ -205,10 +205,8 @@ def gen(seed, n=20, sample=5000):
     def len_word(d):
         return len(d['word'])
 
-    defs = random.sample(
-        [json.loads(l) for l in open('defs.json')],
-        sample
-    )
+    defs = [json.loads(l) for l in open('defs.json')]
+    defs = random.sample(defs, sample)
     defs = [d for d in defs if 2 <= len_word(d) <= n]
     defs.sort(key=len_word, reverse=True)
 
