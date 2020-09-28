@@ -111,14 +111,16 @@ def gen(n=20, sample=3000):
 
     h_defs = {}
 
+    def lens(d):
+        return ','.join(reversed([str(len(w)) for w in d["title"].split()]))
+
     def fit_h(d):
         w = d['word']
         m = len(w)
         for i in range(n):
             for j in range(n - m + 1):
                 if can_fit_h(w, i, j):
-                    lens = ','.join([str(len(w)) for w in d["title"].split()])
-                    h_defs[(i, j)] = f'{d["def"]} ({lens})'
+                    h_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
                     grid[i][j:j+m] = list(w)
                     return True
 
@@ -130,8 +132,7 @@ def gen(n=20, sample=3000):
         for i in range(n - m + 1):
             for j in range(n):
                 if can_fit_v(w, i, j):
-                    lens = ','.join([str(len(w)) for w in d["title"].split()])
-                    v_defs[(i, j)] = f'{d["def"]} ({lens})'
+                    v_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
                     for k, c in enumerate(w):
                         grid[i+k][j] = c
 
