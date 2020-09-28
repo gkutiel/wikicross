@@ -251,7 +251,7 @@ def gen(seed, n=7):
 
                 h_word = ''.join(grid[i, j-1:j+2]).translate(trans)
                 v_word = ''.join(grid[i-1:i+2, j]).translate(trans)
-                if h_word in words and v_word in words:
+                if h_word != v_word and h_word in words and v_word in words:
                     h_cord = (i, j) if grid[i][j-1] in [empty, blocked] else (i, j-1)
                     hd = words[h_word]
                     h_defs[h_cord] = f'{hd["def"]} ({lens(hd)})'
@@ -376,7 +376,7 @@ def task_gen():
 
     ns = [7, 9, 11, 13]
     # ns = [9]
-    r = 3
+    r = 6
 
     def index_html():
         from shooki import (html, head, body, link, div, a, title, h1, h2, p, meta)
