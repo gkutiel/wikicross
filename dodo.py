@@ -300,7 +300,35 @@ def task_gen():
             title=f'תשבץ {n}X{n}'
         )
 
-    for n in [6, 12, 18]:
+    ns = [6, 12, 18]
+    r = 9
+
+    def index_html():
+        from shooki import (html, head, body, link, div, a, title, h1, h2)
+
+        with open(docs / 'index.html', 'w') as f:
+            content = div.content[h1['התשבצים של גלעד']]
+            for n in ns:
+                grid = div.grid
+                content.append_child(h2[f'תשבצים {n}X{n}'])
+                content.append_child(grid)
+                for i in range(r):
+                    grid.append_child(div[a(href=f'{n}X{n}/{i:0>4}.pdf')[f'תשבץ מספר {i + 1}']])
+            print(
+                '<!DOCTYPE html>',
+                html(lang='he', dir='auto')[
+                    head[link(rel='stylesheet', href='index.css')],
+                    body[content],
+                ], file=f
+            )
+
+    yield {
+        'name': 'html',
+        'actions': [index_html],
+        'targets': [docs / 'index.html'],
+    }
+
+    for n in ns:
         yield {
             'name': f'mkdir:{n}',
             'actions': [
@@ -310,7 +338,7 @@ def task_gen():
             'targets': [git_keep(n)],
         }
 
-        for i in range(9):
+        for i in range(r):
             yield {
                 'name': f'tex:{n}:{i}',
                 'actions': [gen_tex(n, i)],

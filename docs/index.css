@@ -1,0 +1,16 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    color: #333;
+    background-color: whitesmoke;
+}
+
+.content {
+    width: 50em;
+    padding: 1em;
+    margin: 5em auto;
+    background-color: white;
+    border: 2px solid #eef;
+}
