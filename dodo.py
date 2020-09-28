@@ -331,7 +331,7 @@ def task_gen():
             title=f'תשבץ {n}X{n} מספר {i + 1}'
         )
 
-    ns = [7, 9, 11]
+    ns = [7, 9, 11, 13]
     r = 9
 
     def index_html():
