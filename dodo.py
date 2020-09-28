@@ -126,7 +126,8 @@ def task_data_2_defs():
     }
 
 
-def gen(n=20, sample=3000):
+def gen(seed, n=20, sample=3000):
+    random.seed(seed)
     grid = [[None] * n for _ in range(n)]
 
     def free(i, j):
@@ -322,7 +323,7 @@ def task_gen():
 
     def gen_tex(n, i):
         return lambda: to_latex(
-            *gen(n=n),
+            *gen(i, n=n),
             out=tex(n, i),
             title=f'תשבץ {n}X{n}'
         )
