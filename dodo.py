@@ -127,23 +127,26 @@ def task_data_2_defs():
     }
 
 
+empty, blocked = '.', '0'
+
+
 def gen(seed, n=7):
     random.seed(seed)
-    grid = np.zeros((n, n), dtype=object)
+    grid = np.full((n, n), empty)
     for i in range(1, n, 2):
         for j in range(1, n, 2):
-            grid[i][j] = '*'
+            grid[i][j] = blocked
 
     def free(i, j):
         return (
             not 0 <= i < n
             or not 0 <= j < n
-            or not grid[i][j]
+            or grid[i][j] in [empty, blocked]
         )
 
-    def mark(i, j):
+    def block(i, j):
         if 0 <= i < n and 0 <= j < n:
-            grid[i][j] = grid[i][j] or '*'
+            grid[i][j] = grid[i][j] or blocked
 
     def can_fit_h(w: str, i: int, j: int):
         m = len(w)
@@ -151,7 +154,7 @@ def gen(seed, n=7):
             return False
 
         for d in range(m):
-            if grid[i][j+d] not in [0, w[d]]:
+            if grid[i][j+d] not in [empty, w[d]]:
                 return False
 
         return True
@@ -162,12 +165,11 @@ def gen(seed, n=7):
             return False
 
         for d in range(m):
-            if grid[i+d][j] not in [0, w[d]]:
+            if grid[i+d][j] not in [empty, w[d]]:
                 return False
 
         return True
 
-    ws = []
     h_defs = {}
     v_defs = {}
 
@@ -183,9 +185,8 @@ def gen(seed, n=7):
                     h_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
                     grid[i, j:j+m] = list(w)
 
-                    mark(i, j - 1)
-                    mark(i, j + m)
-                    ws.append(w)
+                    block(i, j - 1)
+                    block(i, j + m)
                     return True
 
     def fit_v(d):
@@ -197,22 +198,23 @@ def gen(seed, n=7):
                     v_defs[(i, j)] = f'{d["def"]} ({lens(d)})'
                     grid[i:i+m, j] = list(w)
 
-                    mark(i-1, j)
-                    mark(i + m, j)
-                    ws.append(w)
+                    block(i-1, j)
+                    block(i + m, j)
                     return True
 
     defs = [[] for i in range(n + 1)]
+    words = {}
     for d in [json.loads(l) for l in open('defs.json')]:
-        l = len(d['word'])
-        if l <= n:
-            defs[l].append(d)
+        word = d['word']
+        l = len(word)
+        if l > n:
+            continue
+
+        defs[l].append(d)
+        words[word] = d
 
     for l in defs:
         random.shuffle(l)
-
-    # for c in 'אבגדהוזחטיכלמנסעפצקרשת':
-    #     ...
 
     h = False
     for i in range(n, 1, -1):
@@ -222,7 +224,26 @@ def gen(seed, n=7):
             else:
                 h = fit_v(d)
 
-    print(sum(map(len, ws)))
+    trans = ''.maketrans('', '', empty + blocked)
+    for i in range(1, n, 4):
+        for j in range(1, n, 4):
+            for c in 'אבגדהוזחטיכלמנסעפצקרשת' + blocked:
+                grid[i][j] = c
+                if c == blocked:
+                    break
+
+                h_word = ''.join(grid[i, j-1:j+2]).translate(trans)
+                v_word = ''.join(grid[i-1:i+2, j]).translate(trans)
+                if h_word in words and v_word in words:
+                    h_cord = (i, j) if grid[i][j-1] in [empty, blocked] else (i, j-1)
+                    hd = words[h_word]
+                    h_defs[h_cord] = f'{hd["def"]} ({lens(hd)})'
+
+                    v_cord = (i, j) if grid[i-1][j] in [empty, blocked] else (i-1, j)
+                    vd = words[v_word]
+                    v_defs[v_cord] = f'{vd["def"]} ({lens(vd)})'
+                    break
+
     return grid, h_defs, v_defs
 
 
@@ -256,7 +277,7 @@ def to_latex(grid, hdefs, vdefs, out, title=''):
 
         for i in range(n):
             for j in range(n):
-                if grid[i][j] in [0, '*']:
+                if grid[i][j] in [empty, blocked]:
                     print(f'\\fill ({j},{i}) rectangle +(1,1);', file=f)
 
         for (i, j), k in corrs.items():
@@ -291,7 +312,7 @@ def to_latex(grid, hdefs, vdefs, out, title=''):
 
         for i in range(n):
             for j in range(n):
-                if grid[i][j] in [0, '*']:
+                if grid[i][j] in [empty, blocked]:
                     print(f'\\fill ({j},{i}) rectangle +(1,1);', file=f)
                 else:
                     print(f'\\node[] at({j + .5}, {i + .5}) {{{grid[i][j]}}};', file=f)
@@ -335,7 +356,7 @@ def task_gen():
         )
 
     ns = [7, 9, 11, 13]
-    r = 1
+    r = 9
 
     def index_html():
         from shooki import (html, head, body, link, div, a, title, h1, h2, p, meta)
@@ -393,5 +414,6 @@ def task_gen():
                 'name': f'pdf:{n}:{i}',
                 'actions': [f'latexmk -xelatex -outdir={out_dir(n)} {tex(n, i)}'],
                 'file_dep': [git_keep(n), tex(n, i)],
-                'targets': [pdf(n, i)]
+                'targets': [pdf(n, i)],
+                'verbosity': 0,
             }
