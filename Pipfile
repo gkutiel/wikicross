@@ -9,6 +9,7 @@ rope = "*"
 autopep8 = "*"
 pytest = "*"
 pytest-watch = "*"
+doit = "*"
 
 [packages]
 
