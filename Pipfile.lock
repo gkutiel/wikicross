@@ -73,10 +73,10 @@
         },
         "shooki": {
             "hashes": [
-                "sha256:5ab854ab1630b68ad3dcbac45f3e907b0568104bbb27f014531014aa93f23d11"
+                "sha256:3265ba74eee920e1649d91afe0711bd8e2bf5af4a0b42d51ae29e3d9767b9a04"
             ],
             "index": "pypi",
-            "version": "==0.2.0"
+            "version": "==0.2.1"
         }
     },
     "develop": {
