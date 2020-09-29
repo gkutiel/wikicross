@@ -374,9 +374,9 @@ def task_gen():
             title=f'תשבץ {n}X{n} מספר {i + 1}'
         )
 
-    ns = [7, 9, 11, 13, 15]
+    ns = [7, 9, 11, 13, 15, 17]
     # ns = [9]
-    r = 15
+    r = 18
 
     def index_html():
         from shooki import (html, head, body, link, div, span, a, title, h1, h2, p, meta)
@@ -386,7 +386,7 @@ def task_gen():
                 div.title[h1['ויקי-תשבץ']],
                 div.desc[
                     p[
-                        span[f'{len(ns) * r} תשבצים בגדלים שונים להורדה חינם. התשבצים נוצרו באופן אוטומטי, ההגדרות לתשבצים נלקחו מ-'],
+                        span[f'מעל ל-{len(ns) * r - 1} תשבצים בגדלים שונים להורדה חינם. התשבצים נוצרו באופן אוטומטי, ההגדרות לתשבצים נלקחו מ-'],
                         a(href='https://he.wiktionary.org/wiki/%D7%A2%D7%9E%D7%95%D7%93_%D7%A8%D7%90%D7%A9%D7%99',
                           target='_blank')['ויקימילון'],
                         span[', הקוד שמייצר את התשבצים נמצא '],
@@ -410,7 +410,7 @@ def task_gen():
                         link(rel='icon', href='favicon.png'),
                         meta(name="viewport", content="width=device-width, initial-scale=1.0"),
                         meta(property="og:title", content="ויקי תשבץ"),
-                        meta(property="og:description", content="תשבצים מגונרצים מויקימילון"),
+                        meta(property="og:description", content=f"מעל ל-{len(ns) * r - 1} תשבצים להורדה חופשית."),
                         meta(property="og:image", content="https://gkutiel.github.io/wikicross/favicon.png"),
                     ],
                     body[content],
