@@ -382,7 +382,14 @@ def task_gen():
         from shooki import (html, head, body, link, div, a, title, h1, h2, p, meta)
 
         with open(docs / 'index.html', 'w') as f:
-            content = div.content[div.title[h1['ויקי-תשבץ']]]
+            content = div.content[
+                div.title[h1['ויקי-תשבץ']],
+                div.desc[
+                    p[
+                        f'{len(ns) * r} תשבצים בגדלים שונים להורדה חינם. התשבצים נוצרו באופן אוטומטי.'
+                    ]
+                ]
+            ]
             for n in ns:
                 grid = div.grid
                 content.append(div.title[h2[f'תשבצים {n}X{n}']])
