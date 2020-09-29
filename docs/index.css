@@ -21,9 +21,12 @@ body {
     }
 }
 
-.title,
-.desc {
+.title {
     text-align: center;
+}
+
+.desc {
+    padding: 2em;
 }
 
 .grid {
